@@ -1,0 +1,101 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>trizic-api-spec</artifactId>
+	<parent>
+		<groupId>com.trizic</groupId>
+		<artifactId>trizic-api</artifactId>
+		<version>1.0.DEMO</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<packaging>jar</packaging>
+
+	<name>Trizic Portfolio Specification</name>
+	<description>
+		Contains all public types required by the RAML specification. The
+		required types are generated from the specification and include both
+		the service interface and all types required by the schema.
+    </description>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>javax.validation</groupId>
+		    <artifactId>validation-api</artifactId>
+		    <version>1.1.0.Final</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+		    <groupId>javax.el</groupId>
+		    <artifactId>el-api</artifactId>
+		    <version>2.2</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.testng</groupId>
+		    <artifactId>testng</artifactId>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.hibernate</groupId>
+		    <artifactId>hibernate-validator</artifactId>
+		    <version>5.1.3.Final</version>
+		    <scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- 
+					Generates (fugly) Java source code based on RAML specification.
+					Both the service interface and required schema types are generated.
+					By enabling JSR 303 support (Bean Validation), Jersey will validate
+					the type instances against according to the schema definitions for
+					every request.
+				-->
+				<groupId>org.raml.plugins</groupId>
+				<artifactId>raml-jaxrs-maven-plugin</artifactId>
+				<configuration>
+					<!--
+					This doesn't support includes, instead it attempts to process each
+					RAML file individually: use <sourcePaths> instead 
+					<sourceDirectory>${basedir}/../../api-docs/api</sourceDirectory>
+					-->
+					<sourcePaths>
+						<!-- this attribute enables modular RAML to be processed correctly -->
+						<file>${basedir}/../../api-docs/api/index.raml</file>
+					</sourcePaths>
+					<basePackageName>com.trizic.api</basePackageName>
+					<useSourceHierarchyInPackageName>true</useSourceHierarchyInPackageName>
+					<!-- valid values: 1.1 2.0 -->
+					<jaxrsVersion>2.0</jaxrsVersion>
+					<!-- enable Bean Validation -->
+					<useJsr303Annotations>true</useJsr303Annotations>
+					<!-- valid values: jackson1 jackson2 gson none -->
+					<jsonMapper>jackson2</jsonMapper>
+					<removeOldOutput>true</removeOldOutput>
+				</configuration>
+			</plugin>
+		</plugins>
+
+	</build>
+
+</project>
+
