@@ -7,9 +7,9 @@ The services implementation is based on the provided RAML specification. Out of 
 
 as part of the impelementation.
 
-After a bit of research, I settled on [RAML for JAX-RS] (https://github.com/mulesoft-labs/raml-for-jax-rs) from MuleSoft Labs as it appeared to have the feature set I was lookings for as well as being associated with the company behind RAML itself. Typical of open source project, the documentation is lacking. However, there are example configurations that can be used as a starting point and with a bit experimentation, can be made to work. In particular, the modular schema took some time to figure out.
+After a bit of research, I settled on [RAML for JAX-RS](https://github.com/mulesoft-labs/raml-for-jax-rs) from MuleSoft Labs as it appeared to have the feature set I was lookings for as well as being associated with the company behind RAML itself. Typical of open source project, the documentation is lacking. However, there are example configurations that can be used as a starting point and with a bit experimentation, can be made to work. In particular, the modular schema took some time to figure out.
 
-This tool uses another tool under the hood to generate Java from JSON schema that appears to be from [these guys] (http://www.jsonschema2pojo.org/). The code it generates is generally fine, but the class names generated for types was thoroughly abhorrant (e.g. Json_1233535453.java or similar); just a complete non-starter. The solution they provide to customize type naming is the ability to annotate the JSON schema with name value. This means adding the following to each type of interest:
+This tool uses another tool under the hood to generate Java from JSON schema that appears to be from [these guys](http://www.jsonschema2pojo.org/). The code it generates is generally fine, but the class names generated for types was thoroughly abhorrant (e.g. Json_1233535453.java or similar); just a complete non-starter. The solution they provide to customize type naming is the ability to annotate the JSON schema with name value. This means adding the following to each type of interest:
 ```
 "javaType" : "my.path.MyCustomType"
 ```
@@ -81,7 +81,7 @@ The first step a client must perform is to register as an advisor.
 ```
 # curl -v -X POST -H accept:application/json http://localhost:8080/v1/registration/advisors
 ```
-*201 Created*
+**201 Created**
 ```json
 {
   "advisorId":"6523384a-4c5a-43b3-81bf-5caf2bca9cf6",
@@ -94,7 +94,7 @@ The next step is to create some model data. Make sure to use the advisor and api
 ```
 # curl -v -d @src/test/resources/example-model-1.json -X PUT -H "authorization:Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTIzMzg0YS00YzVhLTQzYjMtODFiZi01Y2FmMmJjYTljZjYiLCJpYXQiOjE0ODk4MDQ0NzMsInN1YiI6IjY1MjMzODRhLTRjNWEtNDNiMy04MWJmLTVjYWYyYmNhOWNmNiIsImlzcyI6ImNvbS50cml6aWMuYXBpLnYxIn0.jsf2A37-0QggzYXye_30leHgRJznCNQU7GJj9d9gkRg" -H content-type:application/json -H accept:application/json http://localhost:8080/v1/advisor/6523384a-4c5a-43b3-81bf-5caf2bca9cf6/model
 ```
-*200 OK*
+**200 OK**
 ```json
 {
   "guid":"63b4aa75-800d-460f-bc98-e3310d67578b",
@@ -127,7 +127,7 @@ Once some models have been created, they can be fetched from the service. Fetche
 # curl -v -H "authorization:Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTIzMzg0YS00YzVhLTQzYjMtODFiZi01Y2FmMmJjYTljZjYiLCJpYXQiOjE0ODk4MDQ0NzMsInN1YiI6IjY1MjMzODRhLTRjNWEtNDNiMy04MWJmLTVjYWYyYmNhOWNmNiIsImlzcyI6ImNvbS50cml6aWMuYXBpLnYxIn0.jsf2A37-0QggzYXye_30leHgRJznCNQU7GJj9d9gkRg" -H content-type:application/json -H accept:application/json http://localhost:8080/v1/advisor/6523384a-4c5a-43b3-81bf-5caf2bca9cf6/model
 ```
 
-*200 OK*
+**200 OK**
 ```json
 {
   "pageNumber":1,
