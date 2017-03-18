@@ -8,18 +8,27 @@
 		<version>1.0.DEMO</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<name>Trizic Portfolio Service</name>
 	<description>
 		The service implementation.
-    	</description>
+    </description>
+
+	<properties>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>trizic-api-spec</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
 		</dependency>
 
 		<dependency>
@@ -36,14 +45,169 @@
 		</dependency>
 
 		<dependency>
+		    <groupId>org.glassfish.jersey.containers</groupId>
+		    <artifactId>jersey-container-servlet-core</artifactId>
+		    <version>2.26-b02</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.glassfish.jersey.media</groupId>
+		    <artifactId>jersey-media-json-jackson</artifactId>
+		    <version>2.18</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.glassfish.jersey.ext</groupId>
+		    <artifactId>jersey-bean-validation</artifactId>
+		    <version>2.25.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>javax.el</groupId>
+		    <artifactId>el-api</artifactId>
+		    <version>2.2</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>io.jsonwebtoken</groupId>
+		    <artifactId>jjwt</artifactId>
+		    <version>0.2</version>
+		</dependency>
+
+		<dependency>
 		    <groupId>org.testng</groupId>
 		    <artifactId>testng</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-plus</artifactId>
+			<version>${jetty.version}</version>
 		</dependency>
 
 	</dependencies>
 
 	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<createDependencyReducedPom>true</createDependencyReducedPom>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>com.trizic.api.service.Main</mainClass>
+									<!-- WARNING! This plugin uses the MANIFEST from this project or 
+										creates one if one does not exist. We need to MANIFEST from jetty-server 
+										however. It turns out that org.eclipse.jetty.server.Server reports its server 
+										info (via servlet context) by reading the MANIFEST for its package, which 
+										is inspected by Weld bootstrapping code to determine what server it is integrated 
+										with. That information is no longer there due to this plugin and there doesn't 
+										seem to be any way to do this other way than to hard code it. Caveat emptor... 
+										THE FOLLOWING MAY BREAK WHENEVER JETTY SERVER IS UPDATED: -->
+									<manifestEntries>
+										<Implementation-Vendor>Eclipse.org - Jetty</Implementation-Vendor>
+										<Implementation-Version>${version.jetty}</Implementation-Version>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+							<finalName>${project.artifactId}</finalName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.5.0</version>
+				<executions>
+					<execution>
+						<id>java-cli</id>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>com.trizic.api.service.Main</mainClass>
+					<arguments>
+					</arguments>
+				</configuration>
+			</plugin>
+
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-surefire-plugin</artifactId>
+			    <configuration>
+			    	<excludes>
+			    		<exclude>**/integration/**/*.java</exclude>
+			    	</excludes>
+			    </configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.19.1</version>
+				<configuration>
+				<!--  
+          			<suiteXmlFiles>
+            			<file>src/test/resources/testng-integration.xml</file>
+          			</suiteXmlFiles>
+          		-->
+          			<includes>
+          				<include>**/integration/**/*.java</include>
+          			</includes>
+          			<properties>
+            			<property>
+              				<name>surefire.testng.verbose</name>
+              				<value>10</value>
+            			</property>
+          			</properties>
+        		</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
 	</build>
 
 </project>

@@ -1,0 +1,17 @@
+{
+	"name":"example model 1",
+	"description":"example model with tech stocks",
+	"cashHoldingPercentage":101,
+	"driftPercentage":5,
+	"modelType":"TAXABLE",
+	"rebalanceFrequency":"QUARTERLY",
+	"assetAllocations":[
+		{
+			"symbol":"AAPL",
+			"percentage":31
+		}, {
+			"symbol":"GOOG",
+			"percentage":70
+		}
+	]
+}

@@ -1,23 +1,21 @@
-package com.trizic.api.service;
+package com.trizic.api.service.v1;
 
 import java.io.File;
-import java.nio.file.Path;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.trizic.api.model.ModelResponse;
+import com.trizic.api.service.v1.Persistence.Advisors;
 
 /**
  * Component to read advisor model data. The reader is configured using
  * the builder pattern. If any of the configuration values are invalid,
  * an <code>IllegalArgumentException</code> is raised.
  */
-public class ModelReader implements Persistence {
-
-    static final Path ROOT = Advisors.ROOT;
+public class ModelReader {
 
     private final String advisor;
     private final ObjectMapper mapper;
@@ -28,10 +26,11 @@ public class ModelReader implements Persistence {
 
     public ModelReader( String advisor ) {
         if ( advisor == null || advisor.length() == 0 ) {
-            throw new IllegalArgumentException( "Advisor must be assigned a non-empty value" );
+            throw new NoSuchAdvisorException( advisor );
         }
-        if ( ! ROOT.resolve( advisor ).toFile().exists() ) {
-            throw new IllegalArgumentException( "Advisor must be registered: " + advisor );
+        File f = Persistence.Advisors.getStorage( advisor );
+        if ( ! f.exists() ) {
+            throw new NoSuchAdvisorException( advisor );
         }
         this.advisor = advisor;
         files = list();
@@ -78,7 +77,6 @@ public class ModelReader implements Persistence {
         if ( files.length == 0 ) {
             return 0;
         }
-        // TODO
         return files.length / (pageSize + 1) + 1;
     }
 
@@ -99,6 +97,12 @@ public class ModelReader implements Persistence {
     }
 
     private File [] list() {
-        return ROOT.resolve( advisor ).toFile().listFiles();
+        return Advisors.getStorage( advisor ).listFiles( new FileFilter() {
+            @Override
+            public boolean accept( File pathname ) {
+                // exclude dot files which may be used as metadata
+                return ! pathname.getName().startsWith( Persistence.METADATA_PREFIX );
+            }
+        });
     }
 }

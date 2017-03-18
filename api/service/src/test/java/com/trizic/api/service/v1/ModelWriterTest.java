@@ -1,4 +1,4 @@
-package com.trizic.api.service;
+package com.trizic.api.service.v1;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,19 +8,16 @@ import java.util.List;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.trizic.api.model.AssetAllocation;
-import com.trizic.api.model.ModelRequest;
-import com.trizic.api.model.ModelResponse;
 
 
 public class ModelWriterTest {
 
-    private ModelRequest generateModel( String advisor ) throws IOException {
-        return new ModelRequest()
+    private Model generateModel( String advisor ) throws IOException {
+        return new Model()
             .withName( "test" )
             .withDescription( "Test" )
-            .withModelType( ModelRequest.ModelType.QUALIFIED )
-            .withRebalanceFrequency( ModelRequest.RebalanceFrequency.ANNUAL )
+            .withModelType( Model.ModelType.QUALIFIED )
+            .withRebalanceFrequency( Model.RebalanceFrequency.ANNUAL )
             .withCashHoldingPercentage( 10 )
             .withDriftPercentage( 10 )
             .withAssetAllocations( generateAssetAllocation( 4, 10 ) );
@@ -49,23 +46,23 @@ public class ModelWriterTest {
     }
 
     private void cleanup() {
-        for ( File f : ModelReader.ROOT.toFile().listFiles() ) {
+        for ( File f : Persistence.Advisors.getStorage().listFiles() ) {
             remove( f );
         }
     }
 
     private void createAdvisor( String advisor ) {
-        ModelWriter.ROOT.resolve( advisor ).toFile().mkdirs();
+        new File( Persistence.Advisors.getStorage(), advisor ).mkdirs();
     }
 
     private File createFile( String advisor, String name ) {
-        return ModelWriter.ROOT.resolve( advisor ).resolve( name ).toFile();
+        return new File( Persistence.Advisors.getStorage( advisor ), name );
     }
 
     private ModelResponse readFile( String advisor, String name ) throws IOException {
         return new ObjectMapper()
             .readValue(
-                ModelWriter.ROOT.resolve( advisor ).resolve( name ).toFile(),
+                new File( Persistence.Advisors.getStorage( advisor ), name ),
                 ModelResponse.class
             );
     }
@@ -78,7 +75,7 @@ public class ModelWriterTest {
     }
 
     @Test(dataProvider = "writeParams")
-    public void write( String advisor, ModelRequest model ) throws IOException {
+    public void write( String advisor, Model model ) throws IOException {
         cleanup();
         createAdvisor( advisor );
 
@@ -125,13 +122,15 @@ public class ModelWriterTest {
         }
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = NoSuchAdvisorException.class)
     public void writeNullAdvisor() {
         cleanup();
         new ModelWriter( null );
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    // due to the use of jwt we don't have to rely on an existing directory
+    // as proof of registration
+    @Test(enabled = false, expectedExceptions = NoSuchAdvisorException.class)
     public void writeNoAdvisor() {
         cleanup();
         new ModelWriter( "foo" );
@@ -144,20 +143,21 @@ public class ModelWriterTest {
         new ModelWriter( "foo" ).write();
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    // model validation is performed by Bean Validation rather than internally
+    @Test(enabled = false, expectedExceptions = IllegalArgumentException.class)
     public void writeInvalidModel() {
         cleanup();
         createAdvisor( "foo" );
 
         // allocation mismatch
-        ModelRequest req = new ModelRequest()
+        Model req = new Model()
             .withAssetAllocations( this.generateAssetAllocation( 1, 10 ) )
             .withCashHoldingPercentage( 20 )
             .withDescription( "TEST" )
             .withDriftPercentage( 5 )
-            .withModelType( ModelRequest.ModelType.QUALIFIED )
+            .withModelType( Model.ModelType.QUALIFIED )
             .withName( "test" )
-            .withRebalanceFrequency( ModelRequest.RebalanceFrequency.ANNUAL );
+            .withRebalanceFrequency( Model.RebalanceFrequency.ANNUAL );
 
         new ModelWriter( "foo" ).withModel( req ).write();
     }

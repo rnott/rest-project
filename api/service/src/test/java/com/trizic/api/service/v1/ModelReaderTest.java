@@ -1,4 +1,4 @@
-package com.trizic.api.service;
+package com.trizic.api.service.v1;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,33 +9,29 @@ import java.util.UUID;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.trizic.api.model.AssetAllocation;
-import com.trizic.api.model.ModelResponse;
 
 
 public class ModelReaderTest {
 
     private int generateModels( String advisor, int count ) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        File advisorRoot = ModelReader.ROOT.resolve( advisor ).toFile();
+        File advisorRoot = Persistence.Advisors.getStorage( advisor );
         advisorRoot.mkdirs();
 
         for ( int i = 0; i < count; i++ ) {
             String name = "test-" + i;
-            mapper.writeValue(
-                new File( advisorRoot, name + ".json" ), 
-                new ModelResponse()
-                .withName( name )
+            ModelResponse resp = new ModelResponse();
+            resp.withName( name )
                 .withDescription( "Test" )
                 .withModelType( ModelResponse.ModelType.QUALIFIED )
                 .withRebalanceFrequency( ModelResponse.RebalanceFrequency.ANNUAL )
                 .withCashHoldingPercentage( 10 )
                 .withDriftPercentage( 10 )
-                .withAssetAllocations( generateAssetAllocation( 4, 10 ) )
-                .withAdvisorId( "1" )
+                .withAssetAllocations( generateAssetAllocation( 4, 10 ) );
+            resp.withAdvisorId( "1" )
                 .withGuid( UUID.randomUUID().toString() )
-                .withCreatedOn( "00:00:99T00:00:00Z" )
-           );
+                .withCreatedOn( "00:00:99T00:00:00Z" );
+            mapper.writeValue( new File( advisorRoot, name + ".json" ), resp );
         }
         return count;
     }
@@ -63,7 +59,7 @@ public class ModelReaderTest {
     }
 
     private void cleanup() {
-        for ( File f : ModelReader.ROOT.toFile().listFiles() ) {
+        for ( File f : Persistence.Advisors.getStorage().listFiles() ) {
             remove( f );
         }
     }
@@ -115,13 +111,15 @@ public class ModelReaderTest {
         }
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = NoSuchAdvisorException.class)
     public void fetchNullAdvisorArgument() {
         cleanup();
         new ModelReader( null );
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    // due to the use of jwt we don't have to rely on an existing directory
+    // as proof of registration
+    @Test(enabled = false, expectedExceptions = NoSuchAdvisorException.class)
     public void fetchNoAdvisor() {
         cleanup();
         new ModelWriter( "foo" );

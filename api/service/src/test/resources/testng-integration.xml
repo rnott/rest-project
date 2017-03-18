@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Trizic Advisor V1">
+   <test name="advisors">
+   
+	   <groups>
+	      <run>
+	      	<include name="functional" />
+	      </run>
+	   </groups>
+	   <classes>
+	   		<class name="com.trizic.api.service.v1.integration.AccessControlTest"/>
+	   		<class name="com.trizic.api.service.v1.integration.PutAdvisor"/>
+	   		<class name="com.trizic.api.service.v1.integration.GetAdvisor"/>
+	   </classes>
+
+   </test>
+</suite>
